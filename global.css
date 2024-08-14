@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+:root {
+    --tintColorLight: #11181C;
+    --tintColorDark: #fff;
+  }

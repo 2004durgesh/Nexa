@@ -1,0 +1,92 @@
+{
+    "Code": [
+        {
+            "category": "Code",
+            "id": "1",
+            "image": "@/assets/images/explore-images/code-square.png",
+            "bgColor":"#E0E0E01F",
+            "prompt": "Fetch random jokes online and show them.",
+            "title": "Write code"
+        },
+        {
+            "category": "Code",
+            "id": "2",
+            "image": "@/assets/images/explore-images/chat-square-code.png",
+            "bgColor":"#6EDAFD1F",
+            "prompt": "Explain the code for fetching and showing jokes.",
+            "title": "Explain code"
+        }
+    ],
+    "Content": [
+        {
+            "category": "Content",
+            "id": "3",
+            "image": "@/assets/images/explore-images/pen-new-square.png",
+            "bgColor":"#EFD9B01F",
+            "prompt": "Write about CO's environmental impact.",
+            "title": "Essay writing"
+        },
+        {
+            "category": "Content",
+            "id": "4",
+            "image": "@/assets/images/explore-images/language-square.png",
+            "bgColor":"#E0E0E01F",
+            "prompt": "Translate to Spanish: 'I am going to the store.'",
+            "title": "Translate"
+        }
+    ],
+    "Business": [
+        {
+            "category": "Business",
+            "id": "5",
+            "image": "@/assets/images/explore-images/light-bulb.png",
+            "bgColor":"#FAFB621F",
+            "prompt": "Write an ad for your new product creation.",
+            "title": "Advertising"
+        },
+        {
+            "category": "Business",
+            "id": "6",
+            "image": "@/assets/images/explore-images/graph-up.png",
+            "bgColor":"#79B79F1F",
+            "prompt": "Create a business plan for a new startup.",
+            "title": "Business Plan"
+        }
+    ],
+    "Creative": [
+        {
+            "category": "Creative",
+            "id": "7",
+            "image": "@/assets/images/explore-images/notebook-minimalistic.png",
+            "bgColor":"#77FBAD1F",
+            "prompt": "Write about a robot's adventure after coming to life.",
+            "title": "Story"
+        },
+        {
+            "category": "Creative",
+            "id": "8",
+            "image": "@/assets/images/explore-images/music-notes.png",
+            "bgColor":"#6EDAFD1F",
+            "prompt": "Generate song lyrics about love and friendship.",
+            "title": "Lyrics"
+        }
+    ],
+    "Entertainment": [
+        {
+            "category": "Entertainment",
+            "id": "9",
+            "image": "@/assets/images/explore-images/smile-square.png",
+            "bgColor":"#79B79F1F",
+            "prompt": "Convert your favorite movie title to emojis.",
+            "title": "Movies to Emoji"
+        },
+        {
+            "category": "Entertainment",
+            "id": "10",
+            "image": "@/assets/images/explore-images/emoji-funny-square.png",
+            "bgColor":"#F0995B1F",
+            "prompt": "Tell a joke that will make someone laugh.",
+            "title": "Tell a joke"
+        }
+    ]
+}
