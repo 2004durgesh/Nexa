@@ -1,12 +1,14 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { View, Text,} from 'react-native';
+import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+const Settings = () => {
 
-const settings = () => {
+
   return (
-    <View>
+    <SafeAreaView>
       <Text>settings</Text>
-    </View>
-  )
-}
+    </SafeAreaView>
+  );
+};
 
-export default settings
+export default Settings;

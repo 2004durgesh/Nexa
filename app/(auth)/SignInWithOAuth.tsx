@@ -7,8 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useColorScheme } from "react-native";
-
+import useScheme from "@/hooks/useScheme";
 WebBrowser.maybeCompleteAuthSession();
 enum Strategy {
   Google = 'oauth_google',
@@ -16,7 +15,7 @@ enum Strategy {
   Facebook = 'oauth_facebook',
 }
 const SignInWithOAuth = () => {
-  const colorScheme = useColorScheme();
+  const {colorScheme} = useScheme();
   useWarmUpBrowser();
   const router = useRouter();
   const { startOAuthFlow: googleAuth } = useOAuth({ strategy: 'oauth_google' });

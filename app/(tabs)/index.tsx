@@ -6,6 +6,8 @@ import { useAuth } from '@clerk/clerk-expo';
 import { Link, useRouter } from 'expo-router';
 import ExploreContent from '@/constants/ExploreContent.json';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import useScheme from '@/hooks/useScheme';
+import { Colors } from '@/constants/Colors';
 
 interface ExploreItem {
   id: string;
@@ -30,6 +32,8 @@ const imageMapping: { [key: string]: any } = {
 };
 export default function HomeScreen() {
   const { signOut } = useAuth();
+  const {colorScheme} = useScheme();
+  console.log(colorScheme,"from index");
   const router = useRouter()
   return (
     <ParallaxScrollView
@@ -49,8 +53,8 @@ export default function HomeScreen() {
             <View className='flex flex-row flex-wrap'>
               {ExploreContent[category as keyof typeof ExploreContent].map((item: ExploreItem) => (
                 <ThemedView className='w-1/2 p-4' key={item.id}>
-                  <TouchableOpacity onPress={()=> router.replace(`/explore?prompt=${item.prompt}`)}>
-                    <View className='border border-white p-4 rounded-xl'>
+                  <TouchableOpacity onPress={()=> router.replace(`/chat?prompt=${item.prompt}`)}>
+                    <View className={`border ${colorScheme === 'dark' ? 'border-white' : 'border-black'} p-4 rounded-xl`}>
                       <View className='w-10 h-10 justify-center items-center rounded-md'
                         style={{ backgroundColor: item.bgColor }}
                       >
