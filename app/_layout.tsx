@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider,Theme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments, Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -10,8 +10,9 @@ import * as SecureStore from "expo-secure-store";
 import "../global.css"
 import { Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { EventRegister } from 'react-native-event-listeners';
+import { PortalHost } from '@rn-primitives/portal';
 import { Colors } from '@/constants/Colors';
+
 
 
 const InitialLayout = () => {
@@ -33,7 +34,7 @@ const InitialLayout = () => {
       router.replace('/(tabs)');
     } else if (!isSignedIn) {
       // Redirect to the auth group if the user is not signed in.
-      router.replace('/(auth)');
+      router.replace('/(tabs)');
     }
   }, [isSignedIn]);
 
@@ -72,7 +73,7 @@ const tokenCache = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const {colorScheme}=useScheme()
+  const { colorScheme } = useScheme()
 
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -87,15 +88,18 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
-  
+
 
   return (
-    <ClerkProvider tokenCache={tokenCache} publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}>
-      <GestureHandlerRootView>
-        <ThemeProvider value={colorScheme==='dark'?DarkTheme:DefaultTheme}>
-          <InitialLayout />
-        </ThemeProvider>
-      </GestureHandlerRootView>
-    </ClerkProvider>
+    <>
+      <ClerkProvider tokenCache={tokenCache} publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}>
+        <GestureHandlerRootView>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <InitialLayout />
+          </ThemeProvider>
+          <PortalHost />
+        </GestureHandlerRootView>
+      </ClerkProvider>
+    </>
   );
 }

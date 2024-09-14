@@ -7,16 +7,9 @@ import { Link, useRouter } from 'expo-router';
 import ExploreContent from '@/constants/ExploreContent.json';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import useScheme from '@/hooks/useScheme';
-import { Colors } from '@/constants/Colors';
+import { ExploreItem } from '@/constants/types';
+import { v4 as uuidv4 } from 'uuid';
 
-interface ExploreItem {
-  id: string;
-  category: string;
-  bgColor: string;
-  title: string;
-  prompt: string;
-  image: string;
-}
 
 const imageMapping: { [key: string]: any } = {
   '@/assets/images/explore-images/code-square.png': require('@/assets/images/explore-images/code-square.png'),
@@ -53,7 +46,7 @@ export default function HomeScreen() {
             <View className='flex flex-row flex-wrap'>
               {ExploreContent[category as keyof typeof ExploreContent].map((item: ExploreItem) => (
                 <ThemedView className='w-1/2 p-4' key={item.id}>
-                  <TouchableOpacity onPress={()=> router.replace(`/chat?prompt=${item.prompt}`)}>
+                  <TouchableOpacity onPress={()=> router.replace(`/chat?prompt=${item.prompt}&sessionId=${uuidv4()}`)}>
                     <View className={`border ${colorScheme === 'dark' ? 'border-white' : 'border-black'} p-4 rounded-xl`}>
                       <View className='w-10 h-10 justify-center items-center rounded-md'
                         style={{ backgroundColor: item.bgColor }}

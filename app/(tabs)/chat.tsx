@@ -1,75 +1,122 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, SafeAreaView, StatusBar, TouchableOpacity, Alert, Text, useWindowDimensions } from 'react-native';
+import { View, SafeAreaView, StatusBar, Alert, useWindowDimensions } from 'react-native';
+import { GiftedChat, IMessage, InputToolbar, InputToolbarProps, MessageText, MessageTextProps, Send } from 'react-native-gifted-chat';
+import { useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
-import markdownit from 'markdown-it'
+import markdownit from 'markdown-it';
 import hljs from 'highlight.js';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { GiftedChat, InputToolbar, MessageText, Send } from 'react-native-gifted-chat';
-import { useLocalSearchParams } from 'expo-router';
-import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-import { useFocusEffect } from '@react-navigation/native';
+import RenderHtml, { CustomBlockRenderer } from 'react-native-render-html';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import useScheme from '@/hooks/useScheme';
-import RenderHtml, { CustomBlockRenderer } from 'react-native-render-html';
+import { Content, Message, Role, Part, User } from '@/constants/types';
+import { storage } from '@/components/MMKVStorage';
+import { useRouter } from 'expo-router';
+
+// Helper functions
 const handleCopyCode = async (code: string) => {
   try {
-    Clipboard.setStringAsync(code); // Clipboard API to copy code
+    await Clipboard.setStringAsync(code);
     Alert.alert('Success', 'Code copied to clipboard!');
   } catch (error) {
     console.error('Error copying code:', error);
   }
 }
 
+const convertMessagesToContents = (messages: Message[]): Content[] => {
+  return messages.map(message => ({
+    role: message.user._id === 1 ? Role.user : Role.model,
+    parts: [{ text: message.text }],
+  })).reverse();
+};
 
+const convertContentsToMessages = (contents: Content[]): Message[] => {
+  return contents.reverse().map((content, index) => ({
+    _id: index,
+    text: content.parts[0].text || '',
+    createdAt: new Date(),
+    user: { _id: content.role === Role.user ? 1 : 2, name: content.role === Role.user ? 'Me' : 'Chatbot' },
+  }));
+};
+
+// Main component
 export default function Chat() {
-  const { prompt } = useLocalSearchParams() as { prompt: string };
-  const [messages, setMessages] = useState([]);
+  const { prompt, sessionId: initialSessionId } = useLocalSearchParams() as { prompt: string, sessionId: string };
+  const [sessionId, setSessionId] = useState<string>(initialSessionId || uuidv4());
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [contents, setContents] = useState<Content[]>([]);
   const [code, setCode] = useState('');
   const [renderers, setRenderers] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [waitingForResponse, setWaitingForResponse] = useState(false);
   const { colorScheme } = useScheme();
   const { width } = useWindowDimensions();
-
+  const router = useRouter();
+console.log(sessionId,"from chat");
+  // Markdown rendering configuration
   const md = markdownit({
     highlight: (str: string, lang: string): string => {
       setCode(str);
       if (lang && hljs.getLanguage(lang)) {
-        // console.log("Highlighting code block with language:", lang, str);
         try {
-          return `<pre><div style='display:flex;flex-direction:row;justify-content:space-between'><p>${lang}</p><p>copy</p></div><code class="hljs language-${lang}">` +
+          return `<pre><div style='display:flex;flex-direction:row;justify-content:space-between'><p>${lang}</p></div><code class="hljs language-${lang}">` +
             hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
             '</code></pre>';
         } catch (err) {
           console.error(err);
         }
       }
-
       return `<pre><code class="hljs">${md.utils.escapeHtml(str)}</code></pre>`;
     }
-  })
+  });
+
+  // Effect to set up custom block renderer
   useEffect(() => {
     const PreRenderer: CustomBlockRenderer = function PreRenderer({ TDefaultRenderer, ...props }) {
       return <TDefaultRenderer {...props} onPress={() => handleCopyCode(code)} />;
     };
-    console.log("code", code);
     setRenderers({ pre: PreRenderer });
   }, [code]);
 
+  // Effect to handle messages and contents
+  useEffect(() => {
+    const storedContents = storage.getString(`${sessionId}`);
+    console.log("Stored contents for session:", sessionId, storedContents);
+    if (storedContents) {
+      const parsedContents = JSON.parse(storedContents) as Content[];
+      const loadedMessages = convertContentsToMessages(parsedContents);
+      console.log("Loaded messages for session:", sessionId, loadedMessages);
+      setMessages(loadedMessages);
+    } else {
+      console.log("No stored content found for session:", sessionId);
+    }
+  }, [sessionId]);
+  
+
+  useEffect(() => {
+    setContents(convertMessagesToContents(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    storage.set(`${sessionId}`, JSON.stringify(contents));
+    console.log("storing contents for session:", sessionId, contents, JSON.stringify(contents));
+  }, [contents, sessionId]);
+
+  // Effect to handle focus and status bar color
   useFocusEffect(
     useCallback(() => {
-      // Set status bar color to red when the screen is focused
       StatusBar.setBackgroundColor('black');
-
       return () => {
-        // Revert status bar color to default when the screen is unfocused
         StatusBar.setBackgroundColor('transparent');
       };
     }, [])
   );
-  const fetchChatbotResponse = async (text: string) => {
+
+  // Fetch chatbot response
+  const fetchChatbotResponse = async (contents: Content[]) => {
     setIsLoading(true);
     try {
       const response = await fetch(`${process.env.EXPO_PUBLIC_GEMINI_API_URL!}`, {
@@ -77,74 +124,66 @@ export default function Chat() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ "contents": [{ "parts": [{ "text": text }] }] }),
+        body: JSON.stringify({ contents }),
       });
       const data = await response.json();
-      // const data = "```python\nprint('Hello, World!')"
 
-      // console.log(data.candidates[0].content.parts[0].text);
+      //dummy data to lessen the api calls
+//       const data = `# h1 Heading 8-)
+// **This is some bold text!**
+// This is normal text
+// `;
       setIsLoading(false);
-      return data.candidates[0].content.parts[0].text;
+      return data?.candidates[0]?.content?.parts[0]?.text;
       // return data;
     } catch (error: any) {
       console.log('Error fetching chatbot response:', error.message);
       setIsLoading(false);
-      return error.message;
     }
   };
 
-
+  // Effect to handle prompt and initial response
   useEffect(() => {
     if (prompt) {
       const initialMessage = {
         _id: uuidv4(),
         text: prompt,
         createdAt: new Date(),
-        user: {
-          _id: 1,
-          name: 'Me',
-        },
+        user: { _id: 1, name: 'Me' },
       };
-
-      // Display the prompt message immediately
       setMessages([initialMessage]);
 
-      // Fetch the response for the prompt
-      fetchChatbotResponse(prompt).then((data) => {
+      fetchChatbotResponse(convertMessagesToContents([initialMessage])).then((data) => {
         const initialResponse = {
           _id: uuidv4(),
           text: data,
           createdAt: new Date(),
-          user: {
-            _id: 2,
-            name: 'Chatbot',
-            // avatar: 'https://raw.githubusercontent.com/2004durgesh/Nexa/main/assets/images/nexa.png',
-          },
+          user: { _id: 2, name: 'Chatbot' },
         };
-
         setMessages(previousMessages => GiftedChat.append(previousMessages, [initialResponse]));
       });
     }
   }, [prompt]);
 
+  // Send message handler
   const onSend = useCallback((messages: any[] = []) => {
+    // Check if the message starts with /imagine
+    if (messages[0].text.startsWith('/imagine')) {
+      Alert.alert("Image", "Image is not available in this version");
+      return router.replace('/');
+    }
     setMessages(previousMessages => {
       const newMessages = GiftedChat.append(previousMessages, messages);
 
       if (messages[0].user._id === 1 && !waitingForResponse) {
         setWaitingForResponse(true);
-        fetchChatbotResponse(messages[0].text).then((data) => {
+        fetchChatbotResponse(convertMessagesToContents(newMessages)).then((data) => {
           const responseMessage = {
             _id: uuidv4(),
             text: data,
             createdAt: new Date(),
-            user: {
-              _id: 2,
-              name: 'Chatbot',
-              // avatar: 'https://raw.githubusercontent.com/2004durgesh/Nexa/main/assets/images/nexa.png',
-            },
+            user: { _id: 2, name: 'Chatbot' },
           };
-
           setMessages(previousMessages => GiftedChat.append(previousMessages, [responseMessage]));
           setWaitingForResponse(false);
         });
@@ -154,7 +193,8 @@ export default function Chat() {
     });
   }, [waitingForResponse]);
 
-  const customInputToolbar = (props) => (
+  // Custom input toolbar
+  const customInputToolbar = (props: InputToolbarProps<IMessage>) => (
     <InputToolbar
       {...props}
       containerStyle={{
@@ -169,10 +209,10 @@ export default function Chat() {
     />
   );
 
-  const renderMessageText = (props) => {
+  // Render message text
+  const renderMessageText = (props: MessageTextProps<IMessage>) => {
     const { currentMessage } = props;
     const messageText = currentMessage.text || "<p>Loading...</p>";
-    // console.log("Rendering message text:", messageText);
 
     return currentMessage.user._id === 2 ? (
       <ThemedView darkColor={Colors["light"].background} lightColor={Colors["dark"].background} className='p-4 shrink-[1]'>
@@ -229,11 +269,26 @@ export default function Chat() {
             body: {
               color: "#808080",
               width: width * 0.8,
-              
+
             },
             li: {
               margin: 0,
-            }
+            },
+            table: {
+              width: '100%',
+            },
+            th: {
+              padding: 6,
+              borderBottomWidth: 1,
+              borderBottomColor: '#ccc',
+              textAlign: 'left',
+              backgroundColor: '#f9f9f9',
+            },
+            td: {
+              padding: 6,
+              borderBottomWidth: 1,
+              borderBottomColor: '#eee',
+            },
           }}
           renderers={renderers}
           source={{
@@ -249,14 +304,15 @@ export default function Chat() {
         />
       </ThemedView>
     ) : (
-      <MessageText {...props} textStyle={{ color: Colors[colorScheme ?? "light"].text }} />
+      <MessageText {...props} />
     );
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors[colorScheme ?? "light"].background }} >
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors[colorScheme ?? "light"].background }}>
       <GiftedChat
         messages={messages}
+        placeholder='Message, for image start with /imagine'
         alwaysShowSend
         isTyping={isLoading || waitingForResponse}
         onSend={onSend}

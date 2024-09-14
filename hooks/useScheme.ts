@@ -1,19 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme as useNativewindColorScheme } from 'nativewind';
 
-const useScheme = () => {
-  const deviceScheme = useColorScheme();
-  const [colorScheme, setColorScheme] = useState(deviceScheme || 'light');
-
-  useEffect(() => {
-    setColorScheme(deviceScheme || 'light');
-  }, [deviceScheme]);
-
-  const toggleScheme = () => {
-    setColorScheme((prevScheme) => (prevScheme === 'light' ? 'dark' : 'light'));
+export default function useScheme() {
+  const { colorScheme, setColorScheme, toggleColorScheme } =
+    useNativewindColorScheme();
+  return {
+    colorScheme: colorScheme ?? 'dark',
+    isDarkColorScheme: colorScheme === 'dark',
+    setColorScheme,
+    toggleColorScheme,
   };
-
-  return { colorScheme, toggleScheme };
-};
-
-export default useScheme;
+}
