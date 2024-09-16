@@ -15,6 +15,7 @@ import useScheme from '@/hooks/useScheme';
 import { Content, Message, Role, Part, User } from '@/constants/types';
 import { storage } from '@/components/MMKVStorage';
 import { useRouter } from 'expo-router';
+import * as FileSystem from 'expo-file-system';
 
 // Helper functions
 const handleCopyCode = async (code: string) => {
@@ -27,19 +28,36 @@ const handleCopyCode = async (code: string) => {
 }
 
 const convertMessagesToContents = (messages: Message[]): Content[] => {
-  return messages.map(message => ({
-    role: message.user._id === 1 ? Role.user : Role.model,
-    parts: [{ text: message.text }],
-  })).reverse();
+  return messages.map(message => {
+    const part: Part = {};
+    if (message.text) {
+      part.text = message.text;
+    } else if (message.inlineData) {
+      part.inlineData = message.inlineData;
+    }
+    return {
+      role: message.user._id === 1 ? Role.user : Role.model,
+      parts: [part],
+    };
+  }).reverse();
 };
 
 const convertContentsToMessages = (contents: Content[]): Message[] => {
-  return contents.reverse().map((content, index) => ({
-    _id: index,
-    text: content.parts[0].text || '',
-    createdAt: new Date(),
-    user: { _id: content.role === Role.user ? 1 : 2, name: content.role === Role.user ? 'Me' : 'Chatbot' },
-  }));
+  return contents.reverse().map((content, index) => {
+    const message: Message = {
+      _id: index,
+      text: content.parts[0].text || '',
+      createdAt: new Date(),
+      user: { _id: content.role === Role.user ? 1 : 2, name: content.role === Role.user ? 'Me' : 'Chatbot' },
+    };
+
+    if (content.parts[0].inlineData) {
+      const { mimeType, data } = content.parts[0].inlineData;
+      message.image = `data:${mimeType};base64,${data}`;
+    }
+
+    return message;
+  });
 };
 
 // Main component
@@ -55,7 +73,9 @@ export default function Chat() {
   const { colorScheme } = useScheme();
   const { width } = useWindowDimensions();
   const router = useRouter();
-console.log(sessionId,"from chat");
+  useEffect(() => {
+    setSessionId(initialSessionId);
+  }, [initialSessionId]);
   // Markdown rendering configuration
   const md = markdownit({
     highlight: (str: string, lang: string): string => {
@@ -94,7 +114,7 @@ console.log(sessionId,"from chat");
       console.log("No stored content found for session:", sessionId);
     }
   }, [sessionId]);
-  
+
 
   useEffect(() => {
     setContents(convertMessagesToContents(messages));
@@ -115,6 +135,48 @@ console.log(sessionId,"from chat");
     }, [])
   );
 
+  //Fetch image generation
+  const fetchImageGeneration = async (prompt: string) => {
+    console.log(prompt);
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL!}/images/fal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ "prompt": prompt, "model": "stableDiffusionXL" }),
+      });
+
+      const data = await response.json();
+      const imageUrl = data.image;
+      console.log(imageUrl);
+      const imageResponse = await fetch(imageUrl);
+      const blob = await imageResponse.blob();
+      const mimeType = blob.type;
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          // Extract the base64 string part after the comma
+          const base64String = result.split(',')[1]?.replace(/\s+/g, ''); // Remove any line breaks
+          if (base64String) {
+            resolve(base64String); // Return only the base64 part
+          } else {
+            reject(new Error("Failed to extract base64 string."));
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob); // Read the Blob or file
+      });
+
+
+      return { mimeType, base64, imageUrl }
+    } catch (error: any) {
+      console.log('Error fetching image generation:', error.message);
+      setIsLoading(false);
+    }
+  }
   // Fetch chatbot response
   const fetchChatbotResponse = async (contents: Content[]) => {
     setIsLoading(true);
@@ -127,12 +189,20 @@ console.log(sessionId,"from chat");
         body: JSON.stringify({ contents }),
       });
       const data = await response.json();
-
+      console.log(data);
+      if (data.error) {
+        if (data.error.code === 500) {
+          return data.error.message
+        }
+        else {
+          return "I'm sorry, I don't have an answer for that."
+        }
+      }
       //dummy data to lessen the api calls
-//       const data = `# h1 Heading 8-)
-// **This is some bold text!**
-// This is normal text
-// `;
+      //       const data = `# h1 Heading 8-)
+      // **This is some bold text!**
+      // This is normal text
+      // `;
       setIsLoading(false);
       return data?.candidates[0]?.content?.parts[0]?.text;
       // return data;
@@ -167,15 +237,28 @@ console.log(sessionId,"from chat");
 
   // Send message handler
   const onSend = useCallback((messages: any[] = []) => {
-    // Check if the message starts with /imagine
-    if (messages[0].text.startsWith('/imagine')) {
-      Alert.alert("Image", "Image is not available in this version");
-      return router.replace('/');
-    }
     setMessages(previousMessages => {
       const newMessages = GiftedChat.append(previousMessages, messages);
 
-      if (messages[0].user._id === 1 && !waitingForResponse) {
+      if (messages[0].text.startsWith('/imagine')) {
+        const prompt = messages[0].text.replace('/imagine', '').trim();
+        fetchImageGeneration(prompt).then((result) => {
+          if (result) {
+            const { mimeType, base64, imageUrl } = result;
+            if (imageUrl) {
+              const imageMessage = {
+                _id: uuidv4(),
+                text: '',
+                image: imageUrl,
+                createdAt: new Date(),
+                user: { _id: 2, name: 'Chatbot' },
+                inlineData: { "mimeType": String(mimeType), "data": String(base64) },
+              };
+              setMessages(previousMessages => GiftedChat.append(previousMessages, [imageMessage]));
+            }
+          }
+        });
+      } else if (messages[0].user._id === 1 && !waitingForResponse) {
         setWaitingForResponse(true);
         fetchChatbotResponse(convertMessagesToContents(newMessages)).then((data) => {
           const responseMessage = {
@@ -199,8 +282,9 @@ console.log(sessionId,"from chat");
       {...props}
       containerStyle={{
         backgroundColor: "white",
-        borderTopColor: "#E8E8E8",
-        borderTopWidth: 1,
+        borderTopColor: "#000",
+        borderColor:"#000",
+        borderWidth: 1,
         padding: 4,
         borderRadius: 5,
         marginVertical: 10,

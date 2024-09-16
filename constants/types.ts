@@ -10,6 +10,8 @@ export interface Message {
     text: string;
     createdAt: number | Date;
     user: User;
+    inlineData?:{"mimeType": string, "data": string},
+    image?: string;
 }
 
 export enum Role {
@@ -19,7 +21,7 @@ export enum Role {
 
 export interface Part {
     text?: string;
-    inlineData?: object; // Define this further if needed
+    inlineData?: {"mimeType": string, "data": string};
 }
 
 export interface Content {

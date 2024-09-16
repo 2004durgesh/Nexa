@@ -13,8 +13,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PortalHost } from '@rn-primitives/portal';
 import { Colors } from '@/constants/Colors';
 
-
-
 const InitialLayout = () => {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
@@ -34,7 +32,7 @@ const InitialLayout = () => {
       router.replace('/(tabs)');
     } else if (!isSignedIn) {
       // Redirect to the auth group if the user is not signed in.
-      router.replace('/(tabs)');
+      router.replace('/(auth)');
     }
   }, [isSignedIn]);
 

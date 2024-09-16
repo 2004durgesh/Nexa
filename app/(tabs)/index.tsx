@@ -2,7 +2,6 @@ import { Image, StyleSheet, Button, View } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useAuth } from '@clerk/clerk-expo';
 import { Link, useRouter } from 'expo-router';
 import ExploreContent from '@/constants/ExploreContent.json';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -24,7 +23,6 @@ const imageMapping: { [key: string]: any } = {
   '@/assets/images/explore-images/emoji-funny-square.png': require('@/assets/images/explore-images/emoji-funny-square.png'),
 };
 export default function HomeScreen() {
-  const { signOut } = useAuth();
   const {colorScheme} = useScheme();
   console.log(colorScheme,"from index");
   const router = useRouter()
@@ -38,7 +36,6 @@ export default function HomeScreen() {
         />
       }>
 
-      <Button title="Sign Out" onPress={() => signOut()} />
       <View className='flex flex-col'>
         {Object.keys(ExploreContent).map((category) => (
           <View key={category} className='mb-4'>
