@@ -8,10 +8,21 @@ import { ClerkProvider, useAuth } from "@clerk/clerk-expo"
 import useScheme from '@/hooks/useScheme';
 import * as SecureStore from "expo-secure-store";
 import "../global.css"
-import { Text } from 'react-native';
+import { Platform, Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PortalHost } from '@rn-primitives/portal';
 import { Colors } from '@/constants/Colors';
+import { storage } from '@/components/MMKVStorage';
+import { StatusBar } from 'expo-status-bar';
+
+const LIGHT_THEME: Theme = {
+  dark: false,
+  colors: Colors.light,
+};
+const DARK_THEME: Theme = {
+  dark: true,
+  colors: Colors.dark,
+};
 
 const InitialLayout = () => {
   const { isLoaded, isSignedIn } = useAuth();
@@ -71,11 +82,36 @@ const tokenCache = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { colorScheme } = useScheme()
+  const { colorScheme, setColorScheme, isDarkColorScheme  } = useScheme()
+  const [isColorSchemeLoaded, setIsColorSchemeLoaded] = useState(false);
 
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+
+  useEffect(() => {
+    (async () => {
+      const theme = storage.getString('theme');
+      if (Platform.OS === 'web') {
+        // Adds the background color to the html element to prevent white background on overscroll.
+        document.documentElement.classList.add('bg-background');
+      }
+      if (!theme) {
+        storage.set('theme', colorScheme);
+        setIsColorSchemeLoaded(true);
+        return;
+      }
+      const colorTheme = theme === 'dark' ? 'dark' : 'light';
+      if (colorTheme !== colorScheme) {
+        setColorScheme(colorTheme);
+        setIsColorSchemeLoaded(true);
+        return;
+      }
+      setIsColorSchemeLoaded(true);
+    })().finally(() => {
+      SplashScreen.hideAsync();
+    });
+  }, []);
 
   useEffect(() => {
     if (loaded) {
@@ -83,7 +119,7 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
+  if (!loaded || !isColorSchemeLoaded) {
     return null;
   }
 
@@ -92,7 +128,8 @@ export default function RootLayout() {
     <>
       <ClerkProvider tokenCache={tokenCache} publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}>
         <GestureHandlerRootView>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+          <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
             <InitialLayout />
           </ThemeProvider>
           <PortalHost />

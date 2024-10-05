@@ -2,8 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
-
-:root {
-    --tintColorLight: #11181C;
-    --tintColorDark: #fff;
+@layer base {
+  :root {
+    --background: 210 50% 99%;
+    --foreground: 216 56% 2%;
+    --card: 210 50% 99%;
+    --card-foreground: 216 56% 2%;
+    --popover: 210 50% 99%;
+    --popover-foreground: 216 56% 2%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 216 56% 2%;
+    --input: 210 50% 99%;
+    --ring: 240 5.9% 10%;
   }
+
+  .dark:root {
+    --background: 216 56% 2%;
+    --foreground: 0 0% 98%;
+    --card: 216 56% 2%;
+    --card-foreground: 0 0% 98%;
+    --popover: 216 56% 2%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 50% 99%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}

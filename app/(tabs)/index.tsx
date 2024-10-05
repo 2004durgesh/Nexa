@@ -44,7 +44,7 @@ export default function HomeScreen() {
               {ExploreContent[category as keyof typeof ExploreContent].map((item: ExploreItem) => (
                 <ThemedView className='w-1/2 p-4' key={item.id}>
                   <TouchableOpacity onPress={()=> router.replace(`/chat?prompt=${item.prompt}&sessionId=${uuidv4()}`)}>
-                    <View className={`border ${colorScheme === 'dark' ? 'border-white' : 'border-black'} p-4 rounded-xl`}>
+                    <View className={`border border-border p-4 rounded-xl`}>
                       <View className='w-10 h-10 justify-center items-center rounded-md'
                         style={{ backgroundColor: item.bgColor }}
                       >

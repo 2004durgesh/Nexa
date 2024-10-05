@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, SafeAreaView, StatusBar, Alert, useWindowDimensions } from 'react-native';
 import { GiftedChat, IMessage, InputToolbar, InputToolbarProps, MessageText, MessageTextProps, Send } from 'react-native-gifted-chat';
 import { useLocalSearchParams } from 'expo-router';
@@ -12,10 +12,9 @@ import RenderHtml, { CustomBlockRenderer } from 'react-native-render-html';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import useScheme from '@/hooks/useScheme';
-import { Content, Message, Role, Part, User } from '@/constants/types';
+import { Content, Message, Role, Part } from '@/constants/types';
 import { storage } from '@/components/MMKVStorage';
 import { useRouter } from 'expo-router';
-import * as FileSystem from 'expo-file-system';
 
 // Helper functions
 const handleCopyCode = async (code: string) => {
@@ -66,7 +65,7 @@ export default function Chat() {
   const [sessionId, setSessionId] = useState<string>(initialSessionId || uuidv4());
   const [messages, setMessages] = useState<Message[]>([]);
   const [contents, setContents] = useState<Content[]>([]);
-  const [code, setCode] = useState('');
+  const codeBlocksRef = useRef<Map<string, string>>(new Map());
   const [renderers, setRenderers] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [waitingForResponse, setWaitingForResponse] = useState(false);
@@ -79,27 +78,37 @@ export default function Chat() {
   // Markdown rendering configuration
   const md = markdownit({
     highlight: (str: string, lang: string): string => {
-      setCode(str);
+      const codeKey = uuidv4(); // Generate a unique key for each code block
+      codeBlocksRef.current.set(codeKey, str); // Store the code block in the ref
+      console.log("Code blocks:", codeBlocksRef.current);
       if (lang && hljs.getLanguage(lang)) {
         try {
-          return `<pre><div style='display:flex;flex-direction:row;justify-content:space-between'><p>${lang}</p></div><code class="hljs language-${lang}">` +
+          return `<pre data-code="${codeKey}"><div style='display:flex;flex-direction:row;justify-content:space-between'><p>${lang}</p></div><code class="hljs language-${lang}">` +
             hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
             '</code></pre>';
         } catch (err) {
           console.error(err);
         }
       }
-      return `<pre><code class="hljs">${md.utils.escapeHtml(str)}</code></pre>`;
+      return `<pre data-code="${codeKey}"><code class="hljs">${md.utils.escapeHtml(str)}</code></pre>`;
     }
   });
 
   // Effect to set up custom block renderer
   useEffect(() => {
     const PreRenderer: CustomBlockRenderer = function PreRenderer({ TDefaultRenderer, ...props }) {
-      return <TDefaultRenderer {...props} onPress={() => handleCopyCode(code)} />;
+      const handlePress = () => {
+        const codeKey = props.tnode.attributes['data-code'];
+        const code = codeBlocksRef.current.get(codeKey);
+        console.log("Code block pressed:", codeKey, code);
+        if (code) {
+          handleCopyCode(code);
+        }
+      };
+      return <TDefaultRenderer {...props} onPress={handlePress} />;
     };
     setRenderers({ pre: PreRenderer });
-  }, [code]);
+  }, []);
 
   // Effect to handle messages and contents
   useEffect(() => {
@@ -153,7 +162,7 @@ export default function Chat() {
       console.log(imageUrl);
       const imageResponse = await fetch(imageUrl);
       const blob = await imageResponse.blob();
-      const mimeType = blob.type;
+      const mimeType = "image/jpeg";
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -283,7 +292,7 @@ export default function Chat() {
       containerStyle={{
         backgroundColor: "white",
         borderTopColor: "#000",
-        borderColor:"#000",
+        borderColor: "#000",
         borderWidth: 1,
         padding: 4,
         borderRadius: 5,
@@ -299,7 +308,7 @@ export default function Chat() {
     const messageText = currentMessage.text || "<p>Loading...</p>";
 
     return currentMessage.user._id === 2 ? (
-      <ThemedView darkColor={Colors["light"].background} lightColor={Colors["dark"].background} className='p-4 shrink-[1]'>
+      <ThemedView invert className='p-4 shrink-[1]'>
         <RenderHtml
           contentWidth={width}
           classesStyles={{
@@ -412,6 +421,11 @@ export default function Chat() {
         renderAvatar={() => null}
         renderTime={() => null}
         user={{ _id: 1 }}
+        onLongPress={(context, message) => {
+          if (message.text) {
+            handleCopyCode(message.text);
+          }
+        }}
       />
     </SafeAreaView>
   );

@@ -40,10 +40,17 @@ const History = () => {
   // Function to load session data from storage
   const loadSessionData = () => {
     const keys = storage.getAllKeys();
-    const sessionList = keys.map(key => {
-      const contents: Content[] = JSON.parse(storage.getString(key) || '[]');
-      const promptText = contents.length > 0 && contents[0].parts[0].text ? contents[0].parts[0].text : 'No prompt';
-      return { sessionId: key, prompt: promptText };
+    const sessionList = keys
+    .filter(key => key !== 'theme' && key !== 'undefined' && key !== 'null') 
+    .map(key => {
+      try {
+        const contents: Content[] = JSON.parse(storage.getString(key) || '[]');
+        const promptText = contents.length > 0 && contents[0].parts[0].text ? contents[0].parts[0].text : 'No prompt';
+        return { sessionId: key, prompt: promptText };
+      } catch (error) {
+        console.error(`Error parsing JSON for key ${key}:`, error);
+        return { sessionId: key, prompt: 'Invalid data' };
+      }
     });
     setSessions(sessionList);
   };
@@ -60,7 +67,6 @@ const History = () => {
     loadSessionData();
   }, []);
 
-
   // Handle rename action
   const handleRename = (sessionId: string) => {
     setCurrentSessionId(sessionId);
@@ -72,13 +78,17 @@ const History = () => {
   // Save the new prompt
   const saveNewPrompt = () => {
     if (currentSessionId) {
-      const contents: Content[] = JSON.parse(storage.getString(currentSessionId) || '[]');
-      if (contents.length > 0) {
-        contents[0].parts[0].text = newPrompt;
-        storage.set(currentSessionId, JSON.stringify(contents));
-        loadSessionData();
+      try {
+        const contents: Content[] = JSON.parse(storage.getString(currentSessionId) || '[]');
+        if (contents.length > 0) {
+          contents[0].parts[0].text = newPrompt;
+          storage.set(currentSessionId, JSON.stringify(contents));
+          loadSessionData();
+        }
+        setIsRenameModalVisible(false);
+      } catch (error) {
+        console.error(`Error parsing JSON for key ${currentSessionId}:`, error);
       }
-      setIsRenameModalVisible(false);
     }
   };
 
@@ -96,24 +106,23 @@ const History = () => {
         </ThemedText>
       </TouchableOpacity>
 
-      <DropdownMenu>
+      <DropdownMenu className=''>
         <DropdownMenuTrigger>
           <Ionicons name="ellipsis-vertical" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} className="p-1" />
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent insets={contentInsets} className="w-64 native:w-72">
-          <ThemedView darkColor={Colors['light'].background} lightColor={Colors['dark'].background} className="rounded-lg">
-            <DropdownMenuSeparator />
+        <DropdownMenuContent insets={contentInsets} className="w-64 native:w-72 ">
+          <ThemedView invert className="rounded-lg">
 
             <DropdownMenuGroup>
               <DropdownMenuItem onPress={() => { storage.delete(item.sessionId); loadSessionData(); }} className=" flex-1 flex flex-row items-center gap-4">
                 <Ionicons name="trash-outline" size={24} color={colorScheme === 'dark' ? 'black' : 'white'} />
-                <ThemedText darkColor={Colors['light'].text} lightColor={Colors['dark'].text}>Delete</ThemedText>
+                <ThemedText invert>Delete</ThemedText>
               </DropdownMenuItem>
 
               <DropdownMenuItem onPress={() => handleRename(item.sessionId)} className="flex-1 flex flex-row items-center gap-4">
                 <Ionicons name="brush-outline" size={24} color={colorScheme === 'dark' ? 'black' : 'white'} />
-                <ThemedText darkColor={Colors['light'].text} lightColor={Colors['dark'].text}>Rename</ThemedText>
+                <ThemedText invert>Rename</ThemedText>
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </ThemedView>
@@ -147,7 +156,7 @@ const History = () => {
         >
           <View className="flex-1 justify-center items-center bg-opacity-25">
             <View className="w-[80%] bg-white p-6 rounded-lg">
-              <ThemedText type="defaultSemiBold" darkColor={Colors['light'].text} lightColor={Colors['dark'].text} className="text-lg mb-4">Rename Prompt</ThemedText>
+              <ThemedText type="defaultSemiBold" invert className="text-lg mb-4">Rename Prompt</ThemedText>
               <TextInput
                 value={newPrompt}
                 onChangeText={setNewPrompt}

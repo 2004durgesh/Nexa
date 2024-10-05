@@ -1,11 +1,11 @@
 import { Text, type TextProps, StyleSheet } from 'react-native';
-
 import { useThemeColor } from '@/hooks/useThemeColor';
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
   type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  invert?: boolean; // Add the invert prop
 };
 
 export function ThemedText({
@@ -13,9 +13,14 @@ export function ThemedText({
   lightColor,
   darkColor,
   type = 'default',
+  invert = false, // Default value for invert is false
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const color = useThemeColor(
+    { light: lightColor, dark: darkColor },
+    'text', // The colorName is 'text'
+    invert // Pass the invert prop to useThemeColor
+  );
 
   return (
     <Text
