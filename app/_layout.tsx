@@ -14,6 +14,7 @@ import { PortalHost } from '@rn-primitives/portal';
 import { Colors } from '@/constants/Colors';
 import { storage } from '@/components/MMKVStorage';
 import { StatusBar } from 'expo-status-bar';
+import Loading from '@/components/Loading';
 
 const LIGHT_THEME: Theme = {
   dark: false,
@@ -37,7 +38,7 @@ const InitialLayout = () => {
     console.log('User signed: ', isSignedIn);
     console.log('In auth group: ', inAuthGroup);
 
-    if (true && inAuthGroup) {
+    if (isSignedIn && inAuthGroup) {
       // Redirect to the tabs group if the user is signed in.
       console.log("redirecting to tabs");
       router.replace('/(tabs)');
@@ -48,7 +49,7 @@ const InitialLayout = () => {
   }, [isSignedIn]);
 
   if (!isLoaded) {
-    return <Text>Loading.....</Text>;
+    return <Loading/>;
   }
   return <Slot />;
 };
