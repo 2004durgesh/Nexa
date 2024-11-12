@@ -41,17 +41,17 @@ const History = () => {
   const loadSessionData = () => {
     const keys = storage.getAllKeys();
     const sessionList = keys
-    .filter(key => key !== 'theme' && key !== 'undefined' && key !== 'null') 
-    .map(key => {
-      try {
-        const contents: Content[] = JSON.parse(storage.getString(key) || '[]');
-        const promptText = contents.length > 0 && contents[0].parts[0].text ? contents[0].parts[0].text : 'No prompt';
-        return { sessionId: key, prompt: promptText };
-      } catch (error) {
-        console.error(`Error parsing JSON for key ${key}:`, error);
-        return { sessionId: key, prompt: 'Invalid data' };
-      }
-    });
+      .filter(key => key && key !== 'theme' && key !== 'undefined' && key !== 'null')
+      .map(key => {
+        try {
+          const contents: Content[] = JSON.parse(storage.getString(key) || '[]');
+          const promptText = contents.length > 0 && contents[0].parts[0].text ? contents[0].parts[0].text : 'No prompt';
+          return { sessionId: key, prompt: promptText };
+        } catch (error) {
+          console.error(`Error parsing JSON for key ${key}:`, error);
+          return { sessionId: key, prompt: 'Invalid data' };
+        }
+      });
     setSessions(sessionList);
   };
 

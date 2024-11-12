@@ -69,7 +69,7 @@ export default function Chat() {
   const [renderers, setRenderers] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [waitingForResponse, setWaitingForResponse] = useState(false);
-  const { colorScheme } = useScheme();
+  const { colorScheme } = useScheme() ;
   const { width } = useWindowDimensions();
   const router = useRouter();
   useEffect(() => {
@@ -402,7 +402,7 @@ export default function Chat() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors[colorScheme ?? "light"].background }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors[colorScheme].background }}>
       <GiftedChat
         messages={messages}
         placeholder='Message, for image start with /imagine'

@@ -8,8 +8,8 @@ export type ThemedViewProps = ViewProps & {
   invert?: boolean; // Add the invert prop
 };
 
-export function ThemedView({ style, lightColor, darkColor, invert = false,...otherProps }: ThemedViewProps) {
-  const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background',invert);
+export function ThemedView({ style, lightColor, darkColor, invert = false, ...otherProps }: ThemedViewProps) {
+  const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background', invert);
 
   return <View style={[{ backgroundColor }, style]} {...otherProps} />;
 }

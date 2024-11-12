@@ -15,7 +15,7 @@ enum Strategy {
   Facebook = 'oauth_facebook',
 }
 const SignInWithOAuth = () => {
-  const {colorScheme} = useScheme();
+  const { colorScheme } = useScheme();
   useWarmUpBrowser();
   const router = useRouter();
   const { startOAuthFlow: googleAuth } = useOAuth({ strategy: 'oauth_google' });
@@ -42,35 +42,35 @@ const SignInWithOAuth = () => {
 
 
   return (
-      <View className="gap-5 p-4">
-        {/* <TouchableOpacity
+    <View className="gap-5 p-4">
+      {/* <TouchableOpacity
             onPress={() => console.log('Button Pressed!')}
             style={{ padding: 20, backgroundColor: 'blue' }}
           >
             <Text style={{ color: 'white' }}>Test Button</Text>
           </TouchableOpacity> */}
 
-          <ThemedView invert className="rounded-full shadow-lg">
-            <TouchableOpacity className={` flex-row items-center justify-center px-10 py-4 w-full`} onPress={() => onSelectAuth(Strategy.Apple)}>
-              <Ionicons name="logo-apple" size={30} color={colorScheme === "light" ? `#fcfdfe` : "#020407"} className="absolute left-10"/>
-              <ThemedText invert className="font-bold">Apple</ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
+      <ThemedView invert className="rounded-full shadow-lg">
+        <TouchableOpacity className={` flex-row items-center justify-center px-10 py-4 w-full`} onPress={() => onSelectAuth(Strategy.Apple)}>
+          <Ionicons name="logo-apple" size={30} color={colorScheme === "light" ? `#fcfdfe` : "#020407"} className="absolute left-10" />
+          <ThemedText invert className="font-bold">Apple</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
 
-          <ThemedView invert className="rounded-full shadow-lg">
-            <TouchableOpacity className={` flex-row items-center justify-center px-10 py-4 w-full`} onPress={() => onSelectAuth(Strategy.Google)}>
-              <Ionicons name="logo-google" size={30} color={colorScheme === "light" ? `#fcfdfe` : "#020407"} className="absolute left-10"/>
-              <ThemedText invert className="font-bold">Google</ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
+      <ThemedView invert className="rounded-full shadow-lg">
+        <TouchableOpacity className={` flex-row items-center justify-center px-10 py-4 w-full`} onPress={() => onSelectAuth(Strategy.Google)}>
+          <Ionicons name="logo-google" size={30} color={colorScheme === "light" ? `#fcfdfe` : "#020407"} className="absolute left-10" />
+          <ThemedText invert className="font-bold">Google</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
 
-          <ThemedView invert className="rounded-full  shadow-lg">
-            <TouchableOpacity className={` flex-row items-center justify-center px-10 py-4 w-full`} onPress={() => onSelectAuth(Strategy.Google)}>
-              <Ionicons name="logo-facebook" size={30} color={colorScheme === "light" ? `#fcfdfe` : "#020407"} className="absolute left-10"/>
-              <ThemedText invert className="font-bold">Facebook</ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-      </View>
+      <ThemedView invert className="rounded-full  shadow-lg">
+        <TouchableOpacity className={` flex-row items-center justify-center px-10 py-4 w-full`} onPress={() => onSelectAuth(Strategy.Google)}>
+          <Ionicons name="logo-facebook" size={30} color={colorScheme === "light" ? `#fcfdfe` : "#020407"} className="absolute left-10" />
+          <ThemedText invert className="font-bold">Facebook</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+    </View>
   );
 }
 export default SignInWithOAuth;

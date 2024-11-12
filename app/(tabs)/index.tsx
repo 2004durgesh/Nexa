@@ -23,8 +23,8 @@ const imageMapping: { [key: string]: any } = {
   '@/assets/images/explore-images/emoji-funny-square.png': require('@/assets/images/explore-images/emoji-funny-square.png'),
 };
 export default function HomeScreen() {
-  const {colorScheme} = useScheme();
-  console.log(colorScheme,"from index");
+  const { colorScheme } = useScheme();
+  console.log(colorScheme, "from index");
   const router = useRouter()
   return (
     <ParallaxScrollView
@@ -43,7 +43,7 @@ export default function HomeScreen() {
             <View className='flex flex-row flex-wrap'>
               {ExploreContent[category as keyof typeof ExploreContent].map((item: ExploreItem) => (
                 <ThemedView className='w-1/2 p-4' key={item.id}>
-                  <TouchableOpacity onPress={()=> router.replace(`/chat?prompt=${item.prompt}&sessionId=${uuidv4()}`)}>
+                  <TouchableOpacity onPress={() => router.replace(`/chat?prompt=${item.prompt}&sessionId=${uuidv4()}`)}>
                     <View className={`border border-border p-4 rounded-xl`}>
                       <View className='w-10 h-10 justify-center items-center rounded-md'
                         style={{ backgroundColor: item.bgColor }}
@@ -55,7 +55,7 @@ export default function HomeScreen() {
                         />
                       </View>
                       <ThemedView>
-                          <ThemedText type="subtitle" className='mt-4 mb-2' style={{ fontSize: 18 }}>{item.title}</ThemedText>
+                        <ThemedText type="subtitle" className='mt-4 mb-2' style={{ fontSize: 18 }}>{item.title}</ThemedText>
                         <ThemedText numberOfLines={3} style={{ fontSize: 14, lineHeight: 16, letterSpacing: 0.5 }}>{item.prompt}</ThemedText>
                       </ThemedView>
                     </View>

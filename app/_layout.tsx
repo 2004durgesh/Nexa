@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider,Theme } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider, Theme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments, Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -49,7 +49,7 @@ const InitialLayout = () => {
   }, [isSignedIn]);
 
   if (!isLoaded) {
-    return <Loading/>;
+    return <Loading />;
   }
   return <Slot />;
 };
@@ -83,7 +83,7 @@ const tokenCache = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { colorScheme, setColorScheme, isDarkColorScheme  } = useScheme()
+  const { colorScheme, setColorScheme, isDarkColorScheme } = useScheme()
   const [isColorSchemeLoaded, setIsColorSchemeLoaded] = useState(false);
 
   const [loaded] = useFonts({

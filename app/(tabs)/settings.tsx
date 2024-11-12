@@ -22,7 +22,7 @@ import { Ionicons } from '@expo/vector-icons';
 const Settings = () => {
   const { signOut } = useAuth();
   const { user } = useUser()
-  const { colorScheme, setColorScheme } = useScheme();
+  const { colorScheme, setColorScheme, toggleColorScheme } = useScheme();
 
   const _handlePressButtonAsync = async (url: string) => {
     await WebBrowser.openBrowserAsync(url);
@@ -66,7 +66,7 @@ const Settings = () => {
           <ThemedText>SignOut</ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')} className='bg-destructive p-4 m-4 rounded-lg'>
+        <TouchableOpacity onPress={() => toggleColorScheme()} className='bg-destructive p-4 m-4 rounded-lg'>
           <ThemedText>Toggle Theme</ThemedText>
         </TouchableOpacity>
       </ThemedView>
